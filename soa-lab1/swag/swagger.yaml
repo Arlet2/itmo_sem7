@@ -1,0 +1,284 @@
+openapi: 3.0.0
+info:
+  title: Space Marine API
+  version: 1.0.0
+  description: API для управления коллекцией объектов класса SpaceMarine и выполнения операций с десантниками на звездолете.
+servers:
+  - url: http://localhost:8080/api/v1
+paths:
+  /space-marines:
+    get:
+      summary: Получить массив SpaceMarine с поддержкой фильтрации, сортировки и постраничного вывода
+      tags:
+        - SpaceMarine
+      parameters:
+        - name: page
+          in: query
+          description: Номер страницы для постраничного вывода
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          description: Размер страницы
+          required: false
+          schema:
+            type: integer
+            default: 10
+        - name: sort
+          in: query
+          description: Поле для сортировки
+          required: false
+          schema:
+            type: string
+        - name: filter
+          in: query
+          description: Условия для фильтрации (например, health>50)
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Массив десантников успешно возвращен
+          content:
+            application/xml:
+              schema:
+                type: array
+                xml:
+                  name: spaceMarines
+                  wrapped: true
+                items:
+                  $ref: '#/components/schemas/SpaceMarine'
+        '400':
+          description: Неверные параметры запроса
+        '500':
+          description: Внутренняя ошибка сервера
+
+    post:
+      summary: Добавить нового SpaceMarine
+      tags:
+        - SpaceMarine
+      requestBody:
+        required: true
+        content:
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/SpaceMarine'
+      responses:
+        '201':
+          description: SpaceMarine успешно добавлен
+        '400':
+          description: Неверные данные для создания SpaceMarine
+        '422':
+          description: Ошибка валидации
+        '500':
+          description: Внутренняя ошибка сервера
+
+  /space-marines/{id}:
+    get:
+      summary: Получить SpaceMarine по ИД
+      tags:
+        - SpaceMarine
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: SpaceMarine найден
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/SpaceMarine'
+        '404':
+          description: SpaceMarine не найден
+        '500':
+          description: Внутренняя ошибка сервера
+
+    put:
+      summary: Обновить SpaceMarine по ИД
+      tags:
+        - SpaceMarine
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/SpaceMarine'
+      responses:
+        '200':
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/SpaceMarine'
+          description: SpaceMarine успешно обновлён
+        '400':
+          description: Неверные данные для обновления SpaceMarine
+        '404':
+          description: SpaceMarine не найден
+        '500':
+          description: Внутренняя ошибка сервера
+
+    delete:
+      summary: Удалить SpaceMarine по ИД
+      tags:
+        - SpaceMarine
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: SpaceMarine успешно удалён
+        '204':
+          description: SpaceMarine уже был удалён
+        '500':
+          description: Внутренняя ошибка сервера
+
+  /space-marines/chapters/{chapterName}:
+    delete:
+      summary: Удалить любой SpaceMarine с заданным значением поля chapter
+      tags:
+        - SpaceMarine
+      parameters:
+        - name: chapterName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: SpaceMarine успешно удалён
+        '204':
+          description: SpaceMarine уже успешно удалён
+        '500':
+          description: Внутренняя ошибка сервера
+
+  /space-marines/creation-date/min:
+    get:
+      summary: Вернуть любой SpaceMarine с минимальной датой создания
+      tags:
+        - SpaceMarine
+      responses:
+        '200':
+          description: SpaceMarine с минимальной датой создания найден
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/SpaceMarine'
+        '404':
+          description: SpaceMarine не найден
+        '500':
+          description: Внутренняя ошибка сервера
+
+  /space-marines/weapon-types/unique:
+    get:
+      summary: Вернуть массив уникальных значений поля weaponType
+      tags:
+        - SpaceMarine
+      responses:
+        '200':
+          description: Уникальные значения полей weaponType успешно возвращены
+          content:
+            application/xml:
+              schema:
+                type: array
+                xml:
+                  name: weaponTypes
+                  wrapped: true
+                items:
+                  type: string
+                  xml:
+                    name: weaponType
+                  enum:
+                    - HEAVY_BOLTGUN
+                    - GRENADE_LAUNCHER
+                    - MULTI_MELTA
+        '500':
+          description: Внутренняя ошибка сервера
+
+components:
+  schemas:
+    SpaceMarine:
+      type: object
+      xml:
+        name: spaceMarine
+      properties:
+        id:
+          type: integer
+          format: int64
+          minimum: 1
+          description: Уникальный идентификатор десантника
+        name:
+          type: string
+          description: Имя десантника
+          minLength: 1
+          nullable: false
+        coordinates:
+          $ref: '#/components/schemas/Coordinates'
+        creationDate:
+          type: string
+          format: date-time
+          description: Дата создания объекта
+        health:
+          type: integer
+          minimum: 1
+          description: Здоровье десантника
+        heartCount:
+          type: integer
+          minimum: 1
+          maximum: 3
+          description: Количество сердец десантника
+        achievements:
+          type: string
+          nullable: true
+          description: Достижения десантника
+        weaponType:
+          type: string
+          enum:
+            - HEAVY_BOLTGUN
+            - GRENADE_LAUNCHER
+            - MULTI_MELTA
+          nullable: true
+          description: Тип оружия десантника
+        chapter:
+          $ref: '#/components/schemas/Chapter'
+          nullable: true
+
+    Coordinates:
+      type: object
+      properties:
+        x:
+          type: number
+          format: float
+          description: Координата X, больше -674
+          minimum: -674
+        y:
+          type: number
+          format: float
+          description: Координата Y, максимальное значение 883
+          maximum: 883
+
+    Chapter:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Название главы
+          minLength: 1
+        marinesCount:
+          type: integer
+          minimum: 1
+          maximum: 1000
+          description: Количество десантников в главе

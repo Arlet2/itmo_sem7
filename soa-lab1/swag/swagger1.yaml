@@ -1,0 +1,83 @@
+openapi: 3.0.0
+info:
+  title: Starship API
+  version: 1.0.0
+  description: API для управления коллекцией объектов класса Starship и выполнения операций с десантниками на звездолете.
+servers:
+  - url: http://localhost:8080/api/v1
+paths:
+  /starships:
+    post:
+      summary: Создать новый Starship
+      tags:
+        - Starship
+      requestBody:
+        required: true
+        content:
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/Starship'
+      responses:
+        '201':
+          description: Starship успешно создан
+        '400':
+          description: Неверные данные для создания Starship
+        '500':
+          description: Внутренняя ошибка сервера
+
+  /starships/{starship-id}/unload/{space-marine-id}:
+    post:
+      summary: Высадить выбранного SpaceMarine с корабля
+      tags:
+        - Starship
+      parameters:
+        - name: starship-id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: space-marine-id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: SpaceMarine успешно высажен
+        '404':
+          description: Starship или SpaceMarine не найдены
+        '500':
+          description: Внутренняя ошибка сервера
+
+  /starships/{starship-id}/unload-all:
+    post:
+      summary: Высадить всех SpaceMarine с корабля
+      tags:
+        - Starship
+      parameters:
+        - name: starship-id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Все SpaceMarine успешно высажены
+        '404':
+          description: Starship не найден
+        '500':
+          description: Внутренняя ошибка сервера
+
+components:
+  schemas:
+    Starship:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Уникальный идентификатор звездолета
+        name:
+          type: string
+          description: Название звездолета
+          minLength: 1
